@@ -1,9 +1,12 @@
 #pragma once
 
 #include <cstdint>
+#include <array>
+
+#define CADU_SIZE 1024
 
 namespace libccsds
 {
     // Convenience only
-    typedef uint8_t CADU[1024];
+    typedef std::array<uint8_t, CADU_SIZE> CADU;
 } // namespace libccsds
