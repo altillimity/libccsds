@@ -83,7 +83,7 @@ namespace libccsds
 
             // Copy the remaining data into our header
             std::memcpy(&headerBuffer[inHeaderBuffer], &mpdu.data[0], 6 - inHeaderBuffer);
-            offset = (7 - inHeaderBuffer) - 1;
+            offset = 6 - inHeaderBuffer;
             inHeaderBuffer += 6 - inHeaderBuffer;
 
             // Parse it
@@ -97,15 +97,15 @@ namespace libccsds
             if (mpdu.first_header_pointer < 2047)
             {
                 // Finish filling up that packet
-                int toWrite = remainingPacketLength > mpdu.first_header_pointer + 1 ? mpdu.first_header_pointer + 1 : remainingPacketLength;
+                int toWrite = (remainingPacketLength + offset) > mpdu.first_header_pointer + 1 ? (mpdu.first_header_pointer + 1) - offset : remainingPacketLength;
                 pushPayload(&mpdu.data[offset], toWrite);
                 remainingPacketLength = 0;
             }
             else
             {
                 // Write what we have
-                int toWrite = remainingPacketLength > MPDU_DATA_SIZE ? MPDU_DATA_SIZE : remainingPacketLength;
-                pushPayload(&mpdu.data[offset], toWrite);
+                int toWrite = (remainingPacketLength + offset) > MPDU_DATA_SIZE - offset ? MPDU_DATA_SIZE - offset : remainingPacketLength;
+                pushPayload(&mpdu.data[offset], toWrite);    
             }
         }
 
@@ -119,19 +119,19 @@ namespace libccsds
         if (mpdu.first_header_pointer < 2047)
         {
             // The full header fits
-            if (mpdu.first_header_pointer + HEADER_LENGTH + 1 <= MPDU_DATA_SIZE)
+            if (mpdu.first_header_pointer + HEADER_LENGTH < MPDU_DATA_SIZE)
             {
                 // Parse it
                 readPacket(&mpdu.data[mpdu.first_header_pointer]);
 
                 // Compute possible secondary headers in that packet
-                bool hasSecondHeader = MPDU_DATA_SIZE >= mpdu.first_header_pointer + totalPacketLength;
+                bool hasSecondHeader = MPDU_DATA_SIZE > mpdu.first_header_pointer + totalPacketLength;
 
                 // A second header can fit, so search for it!
                 if (hasSecondHeader)
                 {
                     // Write first packet
-                    if (mpdu.first_header_pointer + totalPacketLength <= MPDU_DATA_SIZE)
+                    if (mpdu.first_header_pointer + totalPacketLength < MPDU_DATA_SIZE)
                     {
                         pushPayload(&mpdu.data[mpdu.first_header_pointer + 6], currentPacketPayloadLength);
                         pushPacket();
@@ -144,10 +144,10 @@ namespace libccsds
                     // Compute next possible header
                     int nextHeaderPointer = mpdu.first_header_pointer + totalPacketLength;
 
-                    while (nextHeaderPointer + 1 <= MPDU_DATA_SIZE)
+                    while (nextHeaderPointer < MPDU_DATA_SIZE)
                     {
                         // The header fits!
-                        if (nextHeaderPointer + HEADER_LENGTH + 1 <= MPDU_DATA_SIZE)
+                        if (nextHeaderPointer + HEADER_LENGTH < MPDU_DATA_SIZE)
                         {
                             readPacket(&mpdu.data[nextHeaderPointer]);
 
@@ -155,7 +155,7 @@ namespace libccsds
                             pushPayload(&mpdu.data[nextHeaderPointer + 6], toWrite);
                         }
                         // Only part of the header fits. At least 1 byte has to be there or it'll be in the next frame
-                        else if (nextHeaderPointer + 1 <= MPDU_DATA_SIZE)
+                        else if (nextHeaderPointer < MPDU_DATA_SIZE)
                         {
                             inHeader = true;
                             inHeaderBuffer = 0;
@@ -185,14 +185,13 @@ namespace libccsds
                     }
                 }
             }
-            else if (mpdu.first_header_pointer + 1 <= MPDU_DATA_SIZE)
+            else if (mpdu.first_header_pointer < MPDU_DATA_SIZE)
             {
                 // The header doesn't fit, so fill what we have
                 inHeader = true;
                 inHeaderBuffer = 0;
                 std::memcpy(headerBuffer, &mpdu.data[mpdu.first_header_pointer], MPDU_DATA_SIZE - mpdu.first_header_pointer);
                 inHeaderBuffer += MPDU_DATA_SIZE - mpdu.first_header_pointer;
-                return ccsdsBuffer;
             }
         }
 
