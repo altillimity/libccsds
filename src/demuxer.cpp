@@ -4,11 +4,11 @@
 #include <cstring>
 
 #define HEADER_LENGTH 6
-#define MPDU_DATA_SIZE 884
 
 namespace libccsds
 {
-    Demuxer::Demuxer()
+    Demuxer::Demuxer(int mpdu_data_size, bool hasInsertZone) : MPDU_DATA_SIZE(mpdu_data_size),
+                                                               HAS_INSERT_ZONE(hasInsertZone)
     {
         // Init variables
         currentCCSDSPacket.header.packet_length = 0;
@@ -64,7 +64,7 @@ namespace libccsds
     {
         ccsdsBuffer.clear(); // Clear buffer from previous run
 
-        MPDU mpdu = parseMPDU(cadu); // Parse M-PDU Header
+        MPDU mpdu = parseMPDU(cadu, HAS_INSERT_ZONE); // Parse M-PDU Header
 
         // Sanity check, if the first header point points outside the data payload
         if (mpdu.first_header_pointer < 2047 && mpdu.first_header_pointer >= MPDU_DATA_SIZE)
@@ -105,7 +105,7 @@ namespace libccsds
             {
                 // Write what we have
                 int toWrite = (remainingPacketLength + offset) > MPDU_DATA_SIZE - offset ? MPDU_DATA_SIZE - offset : remainingPacketLength;
-                pushPayload(&mpdu.data[offset], toWrite);    
+                pushPayload(&mpdu.data[offset], toWrite);
             }
         }
 

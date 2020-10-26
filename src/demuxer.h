@@ -13,6 +13,10 @@ namespace libccsds
     class Demuxer
     {
     private:
+        const int MPDU_DATA_SIZE;
+        const bool HAS_INSERT_ZONE;
+
+    private:
         CCSDSPacket currentCCSDSPacket;                                                             // Current CCSDS
         std::vector<CCSDSPacket> ccsdsBuffer;                                                       // Buffer to store what we're working on
         void pushPacket();                                                                          // We're done with it, end it
@@ -25,7 +29,7 @@ namespace libccsds
         int inHeaderBuffer;                                                                         // Used to fill it up properly
 
     public:
-        Demuxer();
+        Demuxer(int mpdu_data_size, bool hasInsertZone = false);
         std::vector<CCSDSPacket> work(CADU &cadu); // Main function
     };
 } // namespace libccsds

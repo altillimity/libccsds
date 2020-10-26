@@ -14,6 +14,6 @@ namespace libccsds
     };
 
     // Parse MPDU from CADU
-    MPDU parseMPDU(CADU &cadu);
+    MPDU parseMPDU(CADU &cadu, bool hasVCDUInsertZone = false);
 
 } // namespace libccsds
