@@ -29,7 +29,7 @@ namespace libccsds
         int inHeaderBuffer;                                                                         // Used to fill it up properly
 
     public:
-        Demuxer(int mpdu_data_size, bool hasInsertZone = false);
+        Demuxer(int mpdu_data_size = 884, bool hasInsertZone = false);
         std::vector<CCSDSPacket> work(CADU &cadu); // Main function
     };
 } // namespace libccsds
