@@ -2,6 +2,12 @@ cmake_minimum_required(VERSION 3.0)
 
 project (libccsds VERSION 1.0)
 
+if(MSVC)
+    # Export all symbols in DLL - Could use __declspec(dllexport) if need to be
+    # more selective
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+endif()
+
 file(GLOB_RECURSE CCSDS_CPPS src/*.cpp)
 
 add_library(ccsds SHARED ${CCSDS_CPPS})
