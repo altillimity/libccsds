@@ -4,6 +4,7 @@
     A CADU Deframer
 */
 
+#include <cstddef>
 #include <vector>
 #include <array>
 #include <cstdint>
